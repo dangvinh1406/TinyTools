@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Label OCR</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <style>
+            #imageContainer img {
+                width: auto;
+                height: 50px;
+            }
+            #imageContainer p {
+                width: auto;
+                height: 20px;
+            }
+            #imageContainer div {
+                border: 3px solid #000;
+                padding: 5px;
+                width: auto;
+                display: inline-block;
+            }
+        </style>
+        
+    </head>
+    <body>
+        <input type="file" id="file" name="file"/>
+        <output id="info"></output>
+        <button id="load" onclick="load()">Load</button>
+        <button id="save" onclick="save()">Save</button>
+        <div id="imageContainer"></div>
+        <script>
+            var data;
+            document.getElementById("load").disabled = true;
+            document.getElementById("save").disabled = true;
+
+            function handleFileSelect(evt){
+                var f = evt.target.files[0];
+                var output = [];
+                output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                        f.size, ' bytes, last modified: ',
+                        f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                        '</li>');
+                document.getElementById('info').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+                var reader = new FileReader();
+                if (reader){
+                    reader.onload = function(e){
+                        var contents = e.target.result;
+                        data = contents.split('\n');
+                        for (var i = 0; i < data.length; i++){ 
+                            data[i] = data[i].split('\t');
+                        }
+                    };
+                    alert("Reading text file complete");
+                    document.getElementById("load").disabled = false;
+                }
+                reader.readAsText(f);
+            }
+
+            document.getElementById('file').addEventListener('change', handleFileSelect, false);
+
+            function load(){
+                document.getElementById("save").disabled = false;
+                var container = document.getElementById('imageContainer');
+                var docFrag = document.createDocumentFragment();
+
+                data.forEach(function(cur, index, arr){
+                    var record = document.createElement('div')
+                    var img = document.createElement('img');
+                    img.src = cur[0];
+                    var label = document.createElement('p');
+                    var text = document.createTextNode(cur[1]);
+                    var checkbox = document.createElement("input");
+                    checkbox.setAttribute("type", "checkbox");
+                    checkbox.checked = false;
+                    if (cur.length >= 3){
+                        checkbox.checked = true;
+                    }
+                    label.appendChild(text);
+                    label.contentEditable = "true";
+
+                    record.appendChild(img);
+                    record.appendChild(label);
+                    record.appendChild(checkbox);
+
+                    docFrag.appendChild(record);
+                });
+
+
+                container.appendChild(docFrag);
+                alert("Loaded "+data.length+" images");
+            }
+
+            function download(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+            function save(){
+                var dataText = '';
+                var records = document.getElementById('imageContainer').childNodes;
+                for (var i = 0; i < records.length; i++){
+                    record = records[i].childNodes;
+                    dataText += record[0].src+'\t'+record[1].innerHTML;
+                    if (record[2].checked == true){
+                        dataText += '\tc';
+                    }
+                    dataText += '\n';
+                }
+                download("checked_annotation.tsv", dataText);
+            }
+        </script>
+    </body>
+</html>
