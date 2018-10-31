@@ -9,7 +9,13 @@
             #imageContainer img {
                 width: auto;
                 height: 50px;
+                opacity: 1;
+                transition: opacity 0.3s;
             }
+            #imageContainer img[data-src] {
+                opacity: 0;
+            }
+
             #imageContainer p {
                 width: auto;
                 height: 20px;
@@ -28,11 +34,18 @@
         <output id="info"></output>
         <button id="load" onclick="load()">Load</button>
         <button id="save" onclick="save()">Save</button>
+        <button id="next" onclick="show(0)">Next</button>
+        <button id="back" onclick="show(1)">Back</button>
         <div id="imageContainer"></div>
         <script>
             var data;
+            var iStart = 0;
+            var iEnd = 100;
+            var range = 100;
             document.getElementById("load").disabled = true;
             document.getElementById("save").disabled = true;
+            document.getElementById("next").disabled = true;
+            document.getElementById("back").disabled = true;
 
             function handleFileSelect(evt){
                 var f = evt.target.files[0];
@@ -61,14 +74,18 @@
             document.getElementById('file').addEventListener('change', handleFileSelect, false);
 
             function load(){
+                document.getElementById("load").disabled = true;
                 document.getElementById("save").disabled = false;
+                document.getElementById("next").disabled = false;
+                document.getElementById("back").disabled = false;
                 var container = document.getElementById('imageContainer');
                 var docFrag = document.createDocumentFragment();
 
+                var i = 0;
                 data.forEach(function(cur, index, arr){
                     var record = document.createElement('div')
                     var img = document.createElement('img');
-                    img.src = cur[0];
+                    img._src = cur[0];
                     var label = document.createElement('p');
                     var text = document.createTextNode(cur[1]);
                     var checkbox = document.createElement("input");
@@ -83,6 +100,13 @@
                     record.appendChild(img);
                     record.appendChild(label);
                     record.appendChild(checkbox);
+                    record.style.display = "none";
+
+                    if (i < range){
+                        record.childNodes[0].src = record.childNodes[0]._src;
+                        record.style.display = "inline-block";
+                        i += 1
+                    }
 
                     docFrag.appendChild(record);
                 });
@@ -90,6 +114,31 @@
 
                 container.appendChild(docFrag);
                 alert("Loaded "+data.length+" images");
+            }
+
+            function show(choice){
+                var records = document.getElementById('imageContainer').childNodes;
+                for (var i = iStart; i < iEnd; i++){
+                    records[i].childNodes[0].src = '';
+                    records[i].style.display = "none";
+                }
+
+                if (choice == 0){
+                    iStart = iEnd;
+                    iEnd += range;
+                    iEnd =  Math.min(iEnd, records.length);
+                }
+                else{
+                    iEnd = iStart;
+                    iStart -= range;
+                    iStart = Math.max(iStart, 0);
+                }
+
+                for (var i = iStart; i < iEnd; i++){
+                    record = records[i].childNodes;
+                    records[i].childNodes[0].src = records[i].childNodes[0]._src;
+                    records[i].style.display = "inline-block";
+                }
             }
 
             function download(filename, text) {
@@ -110,7 +159,7 @@
                 var records = document.getElementById('imageContainer').childNodes;
                 for (var i = 0; i < records.length; i++){
                     record = records[i].childNodes;
-                    dataText += record[0].src+'\t'+record[1].innerHTML;
+                    dataText += record[0]._src+'\t'+record[1].innerHTML;
                     if (record[2].checked == true){
                         dataText += '\tc';
                     }
