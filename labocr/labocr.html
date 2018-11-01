@@ -159,7 +159,7 @@
                 var records = document.getElementById('imageContainer').childNodes;
                 for (var i = 0; i < records.length; i++){
                     record = records[i].childNodes;
-                    dataText += record[0]._src+'\t'+record[1].innerHTML;
+                    dataText += record[0]._src+'\t'+record[1].textContent;
                     if (record[2].checked == true){
                         dataText += '\tc';
                     }
