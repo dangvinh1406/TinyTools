@@ -36,6 +36,8 @@
         <button id="save" onclick="save()">Save</button>
         <button id="next" onclick="show(0)">Next</button>
         <button id="back" onclick="show(1)">Back</button>
+        <button id="jump" onclick="show(2)">Jump to page: </button>
+        <p id="page" style="width: 80px; height: auto; display: inline-block; border: 1px solid #aaa">0</p>
         <div id="imageContainer"></div>
         <script>
             var data;
@@ -46,6 +48,7 @@
             document.getElementById("save").disabled = true;
             document.getElementById("next").disabled = true;
             document.getElementById("back").disabled = true;
+            document.getElementById("jump").disabled = true;
 
             function handleFileSelect(evt){
                 var f = evt.target.files[0];
@@ -78,6 +81,9 @@
                 document.getElementById("save").disabled = false;
                 document.getElementById("next").disabled = false;
                 document.getElementById("back").disabled = false;
+                document.getElementById("jump").disabled = false;
+                document.getElementById("page").contentEditable = "true";
+
                 var container = document.getElementById('imageContainer');
                 var docFrag = document.createDocumentFragment();
 
@@ -128,10 +134,19 @@
                     iEnd += range;
                     iEnd =  Math.min(iEnd, records.length);
                 }
-                else{
+                else if (choice == 1){
                     iEnd = iStart;
                     iStart -= range;
                     iStart = Math.max(iStart, 0);
+                }
+                else if (choice == 2){
+                    var num = parseInt(document.getElementById("page").textContent);
+                    if (Number.isInteger(num)){ 
+                        if (num > 0 && num <= records.length/range){
+                            iStart = range*(num-1);
+                            iEnd = range*num;
+                        } 
+                    }
                 }
 
                 for (var i = iStart; i < iEnd; i++){
