@@ -38,11 +38,13 @@
         <button id="back" onclick="show(1)">Back</button>
         <button id="jump" onclick="show(2)">Jump to page: </button>
         <p id="page" style="width: 80px; height: auto; display: inline-block; border: 1px solid #aaa">0</p>
+        <input type="checkbox" id="filter">Hide checked data<br>
         <div id="imageContainer"></div>
         <script>
             var data;
             var iStart = 0;
             var iEnd = 100;
+            var page = 1;
             var range = 100;
             document.getElementById("load").disabled = true;
             document.getElementById("save").disabled = true;
@@ -123,6 +125,7 @@
             }
 
             function show(choice){
+                var isHidden = document.getElementById('filter').checked;
                 var records = document.getElementById('imageContainer').childNodes;
                 for (var i = iStart; i < iEnd; i++){
                     records[i].childNodes[0].src = '';
@@ -130,27 +133,27 @@
                 }
 
                 if (choice == 0){
-                    iStart = iEnd;
-                    iEnd += range;
-                    iEnd =  Math.min(iEnd, records.length);
+                    page = Math.min(page+1, records.length/range);
                 }
                 else if (choice == 1){
-                    iEnd = iStart;
-                    iStart -= range;
-                    iStart = Math.max(iStart, 0);
+                    page = Math.max(page-1, 1);
                 }
                 else if (choice == 2){
                     var num = parseInt(document.getElementById("page").textContent);
                     if (Number.isInteger(num)){ 
                         if (num > 0 && num <= records.length/range){
-                            iStart = range*(num-1);
-                            iEnd = range*num;
+                            page = num;
                         } 
                     }
                 }
 
+                iStart = range*(page-1);
+                iEnd = range*page;
+                document.getElementById("page").textContent = page;
+
                 for (var i = iStart; i < iEnd; i++){
-                    record = records[i].childNodes;
+                    if (isHidden && records[i].childNodes[2].checked)
+                        continue;
                     records[i].childNodes[0].src = records[i].childNodes[0]._src;
                     records[i].style.display = "inline-block";
                 }
